@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Register - Digital Lost &amp; Found</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Create an Account</h1>
+    </header>
+
+    <main>
+      <section class="card">
+        <form id="register-form">
+          <label>
+            Name
+            <input type="text" id="register-name" required />
+          </label>
+          <label>
+            Email
+            <input type="email" id="register-email" required />
+          </label>
+          <label>
+            Password
+            <input type="password" id="register-password" required />
+          </label>
+          <button type="submit">Register</button>
+        </form>
+        <p class="helper-text">
+          Already have an account?
+          <a href="index.html">Back to login</a>
+        </p>
+      </section>
+    </main>
+
+    <script src="js/auth.js"></script>
+  </body>
+  </html>
+

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Post Item - Digital Lost &amp; Found</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Post Lost / Found Item</h1>
+      <nav>
+        <a href="dashboard.html">Back to Dashboard</a>
+        <button id="logout-btn">Logout</button>
+      </nav>
+    </header>
+
+    <main>
+      <section class="card">
+        <form id="post-item-form" enctype="multipart/form-data">
+          <label>
+            Title
+            <input type="text" id="item-title" name="title" required />
+          </label>
+          <label>
+            Description
+            <textarea id="item-description" name="description"></textarea>
+          </label>
+          <label>
+            Category
+            <input type="text" id="item-category" name="category" />
+          </label>
+          <label>
+            Status
+            <select id="item-status" name="status">
+              <option value="lost">Lost</option>
+              <option value="found">Found</option>
+            </select>
+          </label>
+          <label>
+            Location
+            <input type="text" id="item-location" name="location" />
+          </label>
+          <label>
+            Image (optional)
+            <input type="file" id="item-image" name="image" accept="image/*" />
+          </label>
+          <button type="submit">Submit Item</button>
+        </form>
+      </section>
+    </main>
+
+    <script src="js/items.js"></script>
+  </body>
+  </html>
+
