@@ -17,6 +17,21 @@
     <main>
       <section class="card">
         <h2>Lost &amp; Found Items</h2>
+
+        <!-- Search & Filter Bar -->
+        <form id="filter-form" style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+          <input type="text" id="search-input" placeholder="Search title/desc..." />
+          <input type="text" id="filter-category" placeholder="Category" />
+          <select id="filter-status">
+            <option value="">Any Status</option>
+            <option value="lost">Lost</option>
+            <option value="found">Found</option>
+            <option value="claimed">Claimed</option>
+          </select>
+          <input type="text" id="filter-location" placeholder="Location" />
+          <button type="submit">Search</button>
+        </form>
+
         <ul id="items-list"></ul>
       </section>
     </main>

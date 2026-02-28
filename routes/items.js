@@ -16,6 +16,12 @@ const mockItems = [];
 let nextItemId = 1;
 
 /**
+ * MOCK CLAIMS ARRAY (no database required)
+ */
+const mockClaims = [];
+let nextClaimId = 1;
+
+/**
  * Multer setup (image upload placeholder)
  *
  * CURRENT MODE: stores uploaded files in a local "uploads/" folder.
@@ -28,9 +34,36 @@ const upload = multer({
 
 // Get all items (public)
 router.get("/", (req, res) => {
-  // MOCK: return the in-memory array
-  // REAL DB LATER: await Item.find().sort({ createdAt: -1 });
-  return res.json(mockItems);
+  const { search, category, status, location } = req.query;
+
+  let filteredItems = mockItems;
+
+  if (search) {
+    const s = search.toLowerCase();
+    filteredItems = filteredItems.filter(
+      (i) =>
+        i.title.toLowerCase().includes(s) ||
+        i.description.toLowerCase().includes(s)
+    );
+  }
+  if (category) {
+    filteredItems = filteredItems.filter(
+      (i) => i.category.toLowerCase() === category.toLowerCase()
+    );
+  }
+  if (status) {
+    filteredItems = filteredItems.filter((i) => i.status === status);
+  }
+  if (location) {
+    filteredItems = filteredItems.filter((i) =>
+      i.location.toLowerCase().includes(location.toLowerCase())
+    );
+  }
+
+  // REAL DB LATER:
+  // const query = {}; // build query object from req.query
+  // const items = await Item.find(query).sort({ createdAt: -1 });
+  return res.json(filteredItems);
 });
 
 // Create a new lost/found item (protected)
@@ -133,4 +166,42 @@ router.patch("/:id/status", authenticate, (req, res) => {
   }
 });
 
-module.exports = router;
+// Submit a claim for an item (protected)
+router.post("/:id/claim", authenticate, (req, res) => {
+  try {
+    const item = mockItems.find((i) => i.id === req.params.id);
+    if (!item) {
+      return res.status(404).json({ message: "Item not found" });
+    }
+
+    if (item.status === "claimed") {
+      return res.status(400).json({ message: "Item is already claimed" });
+    }
+
+    if (item.owner === req.user.userId) {
+      return res.status(400).json({ message: "You cannot claim your own item" });
+    }
+
+    const newClaim = {
+      id: String(nextClaimId++),
+      itemId: item.id,
+      itemTitle: item.title,
+      claimantId: req.user.userId,
+      status: "pending", // pending, approved, rejected
+      createdAt: new Date().toISOString(),
+    };
+
+    mockClaims.push(newClaim);
+    return res.status(201).json({ message: "Claim submitted successfully", claim: newClaim });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Failed to submit claim" });
+  }
+});
+
+// Export both the router and the mock data arrays so admin route can use them
+module.exports = {
+  router,
+  mockItems,
+  mockClaims
+};
