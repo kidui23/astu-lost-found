@@ -1,42 +1,145 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Dashboard - Digital Lost &amp; Found</title>
-    <link rel="stylesheet" href="css/style.css" />
-  </head>
-  <body>
-    <header>
-      <h1>Your Items</h1>
-      <nav>
-        <a href="post-item.html">Post Item</a>
-        <button id="logout-btn">Logout</button>
-      </nav>
-    </header>
 
-    <main>
-      <section class="card">
-        <h2>Lost &amp; Found Items</h2>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ASTU Digital Lost &amp; Found System</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <!-- Leaflet CSS for Maps -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+</head>
 
-        <!-- Search & Filter Bar -->
-        <form id="filter-form" style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
-          <input type="text" id="search-input" placeholder="Search title/desc..." />
-          <input type="text" id="filter-category" placeholder="Category" />
-          <select id="filter-status">
-            <option value="">Any Status</option>
+<body class="dashboard-body">
+  <header class="app-header">
+    <div class="header-brand">
+      <h1>ASTU Digital Lost &amp; Found System</h1>
+    </div>
+    <nav class="header-nav">
+      <!-- Will show up via auth status -->
+      <span id="user-greeting"></span>
+      <button id="theme-toggle-btn" class="theme-toggle" style="margin-right:1rem;">🌙</button>
+      <button id="logout-btn">Logout</button>
+    </nav>
+  </header>
+
+  <div class="dashboard-layout">
+
+    <!-- Main Content Area -->
+    <main class="dashboard-main">
+
+      <!-- Top Stats Row -->
+      <div class="top-stats-grid" id="global-stats-grid">
+        <div class="stat-card stat-red" style="cursor: pointer;"
+          onclick="document.getElementById('filter-status').value = 'lost'; document.getElementById('search-input').value = ''; document.getElementById('filter-category').value = ''; document.getElementById('filter-form').dispatchEvent(new Event('submit'));">
+          <span class="stat-label">Lost Items</span>
+          <strong class="stat-value" id="stat-lost">--</strong>
+        </div>
+        <div class="stat-card stat-green" style="cursor: pointer;"
+          onclick="document.getElementById('filter-status').value = 'found'; document.getElementById('search-input').value = ''; document.getElementById('filter-category').value = ''; document.getElementById('filter-form').dispatchEvent(new Event('submit'));">
+          <span class="stat-label">Found Items</span>
+          <strong class="stat-value" id="stat-found">--</strong>
+        </div>
+        <div class="stat-card stat-blue" style="cursor: pointer;"
+          onclick="document.getElementById('search-input').focus();">
+          <span class="stat-label">Claims Pending</span>
+          <strong class="stat-value" id="stat-pending">--</strong>
+        </div>
+        <div class="stat-card stat-orange" style="cursor: pointer;"
+          onclick="document.getElementById('filter-status').value = 'claimed'; document.getElementById('search-input').value = ''; document.getElementById('filter-category').value = ''; document.getElementById('filter-form').dispatchEvent(new Event('submit'));">
+          <span class="stat-label">Items Recovered</span>
+          <strong class="stat-value" id="stat-recovered">--</strong>
+        </div>
+      </div>
+
+      <!-- Action Buttons Row -->
+      <div class="action-buttons-row">
+        <button class="btn-action btn-green" onclick="window.location.href='post-item.html?type=lost'">
+          Report Lost Item
+        </button>
+        <button class="btn-action btn-blue" onclick="window.location.href='post-item.html?type=found'">
+          Report Found Item
+        </button>
+      </div>
+
+      <!-- Filters Bar -->
+      <div class="filter-bar">
+        <form id="filter-form" class="filter-row">
+          <input type="text" id="search-input" placeholder="Search..." class="filter-input input-search" />
+          <select id="filter-category" class="filter-input">
+            <option value="">Category</option>
+            <option value="Electronics">Electronics</option>
+            <option value="Clothing">Clothing</option>
+            <option value="Books">Books</option>
+            <option value="ID Cards">ID Cards</option>
+            <option value="Other">Other</option>
+          </select>
+          <select id="filter-status" class="filter-input">
+            <option value="">Status</option>
             <option value="lost">Lost</option>
             <option value="found">Found</option>
             <option value="claimed">Claimed</option>
           </select>
-          <input type="text" id="filter-location" placeholder="Location" />
-          <button type="submit">Search</button>
+          <input type="text" id="filter-location" placeholder="Location" class="filter-input" />
+          <button type="submit" class="btn-search">Search</button>
         </form>
+      </div>
 
-        <ul id="items-list"></ul>
+      <!-- Dashboard Map Component -->
+      <section class="recent-listings" style="margin-bottom: 2rem;">
+        <h2>Interactive Campus Map</h2>
+        <div id="dashboard-map"
+          style="height: 400px; width: 100%; border-radius: 16px; border: 1px solid var(--border); box-shadow: var(--shadow-soft); z-index: 1;">
+        </div>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 10px;">Red pins = Lost items. Green pins =
+          Found items. Click a pin to view details.</p>
       </section>
+
+      <!-- Items Display Section -->
+      <section class="recent-listings">
+        <h2>Recent Listings</h2>
+        <div id="items-grid" class="items-grid-container">
+          <!-- Items injected by items.js -->
+          <p>Loading items...</p>
+        </div>
+      </section>
+
     </main>
 
-    <script src="js/items.js"></script>
-  </body>
-  </html>
+    <!-- Right Sidebar (Admin Only) -->
+    <aside class="dashboard-sidebar" id="admin-sidebar" style="display: none;">
+      <div class="sidebar-card">
+        <h3>Admin Dashboard</h3>
+        <div class="sidebar-stat-row">
+          <span>Pending Claims:</span>
+          <strong id="sidebar-pending-count">--</strong>
+        </div>
 
+        <div class="pending-claims-list" id="claims-list">
+          <!-- Claims injected by admin.js -->
+          <p>Loading claims...</p>
+        </div>
+      </div>
+
+      <div class="sidebar-card">
+        <h3>System Stats</h3>
+        <div class="system-stats-list" id="admin-stats">
+          <!-- System stats injected by admin.js -->
+          <p>Loading stats...</p>
+        </div>
+      </div>
+    </aside>
+
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/theme.js"></script>
+  <!-- Leaflet JS for Maps -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="js/items.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+
+</html>

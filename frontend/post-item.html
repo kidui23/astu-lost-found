@@ -1,55 +1,125 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Post Item - Digital Lost &amp; Found</title>
-    <link rel="stylesheet" href="css/style.css" />
-  </head>
-  <body>
-    <header>
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Post Item - Digital Lost &amp; Found</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <!-- Leaflet CSS for Maps -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+</head>
+
+<body>
+  <header class="app-header">
+    <div class="header-brand">
       <h1>Post Lost / Found Item</h1>
-      <nav>
-        <a href="dashboard.html">Back to Dashboard</a>
-        <button id="logout-btn">Logout</button>
-      </nav>
-    </header>
+    </div>
+    <nav class="header-nav">
+      <button id="theme-toggle-btn" class="theme-toggle" style="margin-right:1rem;">🌙</button>
+      <a href="dashboard.html" style="color:var(--text-dark); margin-right:15px; text-decoration:none;">Back to
+        Dashboard</a>
+      <button id="logout-btn">Logout</button>
+    </nav>
+  </header>
 
-    <main>
-      <section class="card">
-        <form id="post-item-form" enctype="multipart/form-data">
-          <label>
-            Title
-            <input type="text" id="item-title" name="title" required />
-          </label>
-          <label>
-            Description
-            <textarea id="item-description" name="description"></textarea>
-          </label>
-          <label>
-            Category
-            <input type="text" id="item-category" name="category" />
-          </label>
-          <label>
-            Status
-            <select id="item-status" name="status">
-              <option value="lost">Lost</option>
-              <option value="found">Found</option>
-            </select>
-          </label>
-          <label>
-            Location
-            <input type="text" id="item-location" name="location" />
-          </label>
-          <label>
-            Image (optional)
-            <input type="file" id="item-image" name="image" accept="image/*" />
-          </label>
-          <button type="submit">Submit Item</button>
-        </form>
-      </section>
-    </main>
+  <main>
+    <section class="card">
+      <form id="post-item-form" enctype="multipart/form-data">
+        <label>
+          Title
+          <input type="text" id="item-title" name="title" required />
+        </label>
+        <label>
+          Description
+          <textarea id="item-description" name="description"></textarea>
+        </label>
+        <label>
+          Category
+          <input type="text" id="item-category" name="category" />
+        </label>
+        <label>
+          Status
+          <select id="item-status" name="status">
+            <option value="lost">Lost</option>
+            <option value="found">Found</option>
+          </select>
+        </label>
+        <label>
+          Location Description
+          <input type="text" id="item-location" name="location" placeholder="e.g. Near the library entrance" />
+        </label>
 
-    <script src="js/items.js"></script>
-  </body>
-  </html>
+        <label>
+          Pinpoint Location on Map
+          <div id="item-map"
+            style="height: 300px; width: 100%; border-radius: 8px; margin-bottom: 15px; border: 1px solid var(--border); z-index: 1;">
+          </div>
+          <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px;">Click on the map to drop a pin of
+            the exact location.</p>
+          <input type="hidden" id="item-lat" name="locationLat" />
+          <input type="hidden" id="item-lng" name="locationLng" />
+        </label>
+        <label>
+          Image (optional)
+          <input type="file" id="item-image" name="image" accept="image/*" />
+        </label>
+        <label>
+          Contact Phone (Required)
+          <input type="tel" id="contact-phone" name="contactPhone" placeholder="e.g. +251 911..." required />
+        </label>
+        <label>
+          Telegram Username (Optional)
+          <input type="text" id="contact-telegram" name="contactTelegram" placeholder="@username" />
+        </label>
+        <button type="submit">Submit Item</button>
+      </form>
+    </section>
+  </main>
 
+  <script src="js/theme.js"></script>
+  <!-- Leaflet JS for Maps -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="js/items.js"></script>
+  <script>
+    // Initialize the map on load
+    document.addEventListener("DOMContentLoaded", () => {
+      // Default center (e.g., ADAMA Science and Technology University rough coordinates, or null island)
+      // Since it's ASTU, let's guess a coordinate near Adama: 8.5415, 39.2903
+      const defaultLat = 8.5415;
+      const defaultLng = 39.2903;
+
+      const map = L.map('item-map').setView([defaultLat, defaultLng], 14);
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap'
+      }).addTo(map);
+
+      let marker = null;
+
+      // On map click, drop a pin and save coordinates
+      map.on('click', function (e) {
+        const lat = e.latlng.lat;
+        const lng = e.latlng.lng;
+
+        // Remove old marker if exists
+        if (marker) {
+          map.removeLayer(marker);
+        }
+
+        marker = L.marker([lat, lng]).addTo(map);
+
+        // Update hidden inputs
+        document.getElementById('item-lat').value = lat;
+        document.getElementById('item-lng').value = lng;
+      });
+
+      // Fix map rendering issues in flex/hidden containers just in case
+      setTimeout(() => { map.invalidateSize(); }, 500);
+    });
+  </script>
+</body>
+
+</html>

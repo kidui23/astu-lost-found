@@ -11,6 +11,8 @@ const userSchema = new mongoose.Schema(
       trim: true,
     },
     passwordHash: { type: String, required: true },
+    phoneNumber: { type: String, required: false },
+    telegramUsername: { type: String, required: false },
     role: {
       type: String,
       enum: ["user", "admin"],

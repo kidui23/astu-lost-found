@@ -1,20 +1,9 @@
-/**
- * Main entry point for the Digital Lost & Found API.
- *
- * CURRENT MODE: mock in-memory data (no live MongoDB needed).
- * This lets you run and test the API structure immediately.
- *
- * LATER: when you are ready to use MongoDB Atlas,
- *  1. Create a cluster on Atlas
- *  2. Get your connection string and put it in .env as MONGODB_URI
- *  3. Uncomment the mongoose connection section below
- *  4. Replace all "mock" arrays in routes with real Mongoose queries
- */
+const path = require("path");
+require("dotenv").config({ path: path.join(__dirname, ".env") });
 
-require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
-// const mongoose = require("mongoose"); // <-- Uncomment when using real MongoDB
+const mongoose = require("mongoose");
 
 // Routes
 const usersRouter = require("./routes/users");
@@ -23,8 +12,7 @@ const adminRouter = require("./routes/admin");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
-// const MONGODB_URI =
-//   process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/digital_lost_found";
+const MONGODB_URI = (process.env.MONGODB_URI || "").replace(/^["']|["']$/g, "").trim();
 
 // Global middlewares
 app.use(cors());
@@ -39,24 +27,50 @@ app.use((req, res, next) => {
   next();
 });
 
-/**
- * MongoDB Atlas connection (DISABLED in mock mode)
- *
- * When you are ready to connect to Atlas:
- *  - Make sure you have MONGODB_URI in your .env
- *  - Uncomment the block below
- *  - Remove/replace mock implementations in routes with real queries
- */
-// mongoose
-//   .connect(MONGODB_URI, {
-//     serverSelectionTimeoutMS: 5000,
-//   })
-//   .then(() => console.log("✅ Connected to MongoDB Atlas"))
-//   .catch((err) => console.error("❌ MongoDB connection error:", err.message));
+// MongoDB connection with retry
+async function connectDB() {
+  if (!MONGODB_URI || MONGODB_URI.trim() === "") {
+    console.error("❌ MONGODB_URI is missing. Add it to your .env file.");
+    process.exit(1);
+  }
+
+  const maxRetries = 3;
+  let lastError;
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      await mongoose.connect(MONGODB_URI.trim(), {
+        serverSelectionTimeoutMS: 10000,
+        connectTimeoutMS: 10000,
+      });
+      console.log("✅ Connected to MongoDB Atlas");
+      return;
+    } catch (err) {
+      lastError = err;
+      console.error(`❌ MongoDB connection attempt ${attempt}/${maxRetries} failed:`, err.message);
+      if (attempt < maxRetries) {
+        console.log("   Retrying in 2 seconds...");
+        await new Promise((r) => setTimeout(r, 2000));
+      }
+    }
+  }
+
+  console.error("\n--- Troubleshooting ---");
+  if (lastError?.message?.includes("authentication failed")) {
+    console.error("• Wrong username or password. In Atlas: Database Access → Edit user → Update password");
+    console.error("• If password has #, @, or *, URL-encode: # → %23, @ → %40, * → %2A");
+  }
+  if (lastError?.message?.includes("ENOTFOUND") || lastError?.message?.includes("getaddrinfo")) {
+    console.error("• Atlas Network Access: Add your IP (or 0.0.0.0/0 for testing)");
+    console.error("• Check cluster host in Atlas connection string");
+  }
+  process.exit(1);
+}
+
 
 // Health check
 app.get("/", (req, res) => {
-  res.json({ message: "Digital Lost & Found API is running (mock mode)" });
+  res.json({ message: "Digital Lost & Found API is running (DB connected)" });
 });
 
 // Main API route mounts
@@ -64,12 +78,19 @@ app.use("/api/users", usersRouter);
 app.use("/api/items", itemsRouter);
 app.use("/api/admin", adminRouter);
 
-// 404 handler for unmatched routes
+// 404 handler
 app.use((req, res) => {
   res.status(404).json({ message: "Route not found" });
 });
 
-// Start HTTP server
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
-});
+// Start server only after MongoDB connects
+connectDB()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`🚀 Server running on http://localhost:${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error("Failed to start:", err);
+    process.exit(1);
+  });

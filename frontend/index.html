@@ -1,38 +1,65 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Digital Lost &amp; Found - Home</title>
-    <link rel="stylesheet" href="css/style.css" />
-  </head>
-  <body>
-    <header>
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Digital Lost &amp; Found - Home</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+
+<body>
+  <header class="app-header">
+    <div class="header-brand">
       <h1>Digital Lost &amp; Found</h1>
-    </header>
+    </div>
+    <nav class="header-nav">
+      <button id="theme-toggle-btn" class="theme-toggle">🌙</button>
+    </nav>
+  </header>
 
-    <main>
-      <section class="card">
-        <h2>Login</h2>
-        <form id="login-form">
-          <label>
-            Email
-            <input type="email" id="login-email" required />
-          </label>
-          <label>
-            Password
-            <input type="password" id="login-password" required />
-          </label>
-          <button type="submit">Login</button>
-        </form>
-        <p class="helper-text">
-          New here?
-          <a href="register.html">Create an account</a>
-        </p>
-      </section>
-    </main>
+  <main>
+    <section class="card">
+      <h2>Login</h2>
+      <form id="login-form">
+        <label>
+          Email
+          <input type="email" id="login-email" required />
+        </label>
+        <label>
+          Password
+          <div style="position: relative; display: flex; align-items: center; margin-top: 0.5rem;">
+            <input type="password" id="login-password" required
+              style="width: 100%; padding-right: 40px; margin-top: 0;" />
+            <button type="button" class="btn-toggle-password" onclick="togglePassword('login-password')"
+              style="position: absolute; right: 10px; width: auto; background: none; border: none; cursor: pointer; color: var(--text-muted); padding: 0; outline: none; margin-top: 0;">
+              👁️
+            </button>
+          </div>
+        </label>
+        <button type="submit">Login</button>
+      </form>
+      <p class="helper-text">
+        New here?
+        <a href="register.html">Create an account</a>
+      </p>
+    </section>
+  </main>
 
-    <script src="js/auth.js"></script>
-  </body>
-  </html>
+  <script src="js/theme.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    function togglePassword(inputId) {
+      const input = document.getElementById(inputId);
+      const btn = input.nextElementSibling;
+      if (input.type === "password") {
+        input.type = "text";
+        btn.textContent = "🙈";
+      } else {
+        input.type = "password";
+        btn.textContent = "👁️";
+      }
+    }
+  </script>
+</body>
 
-
+</html>

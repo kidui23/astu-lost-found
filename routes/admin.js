@@ -1,8 +1,8 @@
 const express = require("express");
-// const Item = require("../models/Item"); // <-- For real MongoDB later
-// const User = require("../models/User"); // <-- For real MongoDB later
+const Item = require("../models/Item");
+const User = require("../models/User");
+const Claim = require("../models/Claim");
 const { authenticate, requireAdmin } = require("../middleware/auth");
-const { mockItems, mockClaims } = require("./items");
 
 const router = express.Router();
 
@@ -14,24 +14,17 @@ const router = express.Router();
  *  - Replace this logic with real aggregation on Item and User collections,
  *    e.g. using Item.countDocuments({ status: "lost" }) etc.
  */
-router.get("/stats", authenticate, requireAdmin, (req, res) => {
+// Basic admin stats endpoint
+router.get("/stats", authenticate, requireAdmin, async (req, res) => {
   try {
-    // MOCK VALUES:
-    const usersCount = 10;
-    const itemsCount = 25;
-    const lostCount = 15;
-    const foundCount = 7;
-    const claimedCount = 3;
-
-    // REAL DB LATER:
-    // const [usersCount, itemsCount, lostCount, foundCount, claimedCount] =
-    //   await Promise.all([
-    //     User.countDocuments(),
-    //     Item.countDocuments(),
-    //     Item.countDocuments({ status: "lost" }),
-    //     Item.countDocuments({ status: "found" }),
-    //     Item.countDocuments({ status: "claimed" }),
-    //   ]);
+    const [usersCount, itemsCount, lostCount, foundCount, claimedCount] =
+      await Promise.all([
+        User.countDocuments(),
+        Item.countDocuments(),
+        Item.countDocuments({ status: "lost" }),
+        Item.countDocuments({ status: "found" }),
+        Item.countDocuments({ status: "claimed" }),
+      ]);
 
     return res.json({
       usersCount,
@@ -49,10 +42,19 @@ router.get("/stats", authenticate, requireAdmin, (req, res) => {
 });
 
 // Get all pending claims (admin only)
-router.get("/claims", authenticate, requireAdmin, (req, res) => {
+router.get("/claims", authenticate, requireAdmin, async (req, res) => {
   try {
-    const pendingClaims = mockClaims.filter((c) => c.status === "pending");
-    return res.json(pendingClaims);
+    const pendingClaims = await Claim.find({ status: "pending" });
+
+    // Map `_id` to `id` for frontend compatibility
+    const formattedClaims = pendingClaims.map((c) => ({
+      ...c.toObject(),
+      id: c._id.toString(),
+      itemId: c.itemId.toString(),
+      claimantId: c.claimantId.toString()
+    }));
+
+    return res.json(formattedClaims);
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: "Failed to load claims" });
@@ -60,20 +62,18 @@ router.get("/claims", authenticate, requireAdmin, (req, res) => {
 });
 
 // Approve a claim
-router.post("/claims/:claimId/approve", authenticate, requireAdmin, (req, res) => {
+router.post("/claims/:claimId/approve", authenticate, requireAdmin, async (req, res) => {
   try {
-    const claim = mockClaims.find((c) => c.id === req.params.claimId);
+    const claim = await Claim.findById(req.params.claimId);
     if (!claim) return res.status(404).json({ message: "Claim not found" });
     if (claim.status !== "pending") return res.status(400).json({ message: "Claim is not pending" });
 
     // Update claim status
     claim.status = "approved";
+    await claim.save();
 
     // Update the associated item
-    const item = mockItems.find((i) => i.id === claim.itemId);
-    if (item) {
-      item.status = "claimed";
-    }
+    await Item.findByIdAndUpdate(claim.itemId, { status: "claimed" });
 
     return res.json({ message: "Claim approved successfully" });
   } catch (err) {
@@ -83,14 +83,15 @@ router.post("/claims/:claimId/approve", authenticate, requireAdmin, (req, res) =
 });
 
 // Reject a claim
-router.post("/claims/:claimId/reject", authenticate, requireAdmin, (req, res) => {
+router.post("/claims/:claimId/reject", authenticate, requireAdmin, async (req, res) => {
   try {
-    const claim = mockClaims.find((c) => c.id === req.params.claimId);
+    const claim = await Claim.findById(req.params.claimId);
     if (!claim) return res.status(404).json({ message: "Claim not found" });
     if (claim.status !== "pending") return res.status(400).json({ message: "Claim is not pending" });
 
     // Update claim status
     claim.status = "rejected";
+    await claim.save();
 
     return res.json({ message: "Claim rejected successfully" });
   } catch (err) {

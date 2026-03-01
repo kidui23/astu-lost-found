@@ -74,16 +74,23 @@ document.addEventListener("DOMContentLoaded", () => {
       const name = document.getElementById("register-name").value;
       const email = document.getElementById("register-email").value;
       const password = document.getElementById("register-password").value;
+      const phoneNumber = document.getElementById("register-phone")?.value || "";
+      const telegramUsername = document.getElementById("register-telegram")?.value || "";
 
       try {
         const res = await fetch(`${API_BASE}/api/users/register`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name, email, password }),
+          body: JSON.stringify({ name, email, password, phoneNumber, telegramUsername }),
         });
 
         if (!res.ok) {
-          alert("Registration failed");
+          try {
+            const data = await res.json();
+            alert("Registration failed: " + data.message);
+          } catch {
+            alert("Registration failed. Please check your connection.");
+          }
           return;
         }
 

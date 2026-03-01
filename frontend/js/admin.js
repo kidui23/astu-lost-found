@@ -31,16 +31,25 @@ async function fetchAdminStats() {
     }
 
     const data = await res.json();
-    statsEl.innerHTML = `
-      <p>Total users: <strong>${data.usersCount}</strong></p>
-      <p>Total items: <strong>${data.itemsCount}</strong></p>
-      <p>
-        By status:
-        lost: <strong>${data.byStatus.lost}</strong>,
-        found: <strong>${data.byStatus.found}</strong>,
-        claimed: <strong>${data.byStatus.claimed}</strong>
-      </p>
-    `;
+    // Populate the new Top Stats Grid
+    const statLost = document.getElementById("stat-lost");
+    const statFound = document.getElementById("stat-found");
+    const statPending = document.getElementById("stat-pending"); // handled in fetchPendingClaims below
+    const statRecovered = document.getElementById("stat-recovered");
+
+    if (statLost) statLost.textContent = data.byStatus.lost;
+    if (statFound) statFound.textContent = data.byStatus.found;
+    if (statRecovered) statRecovered.textContent = data.byStatus.claimed;
+
+    // Optional: Populate the sidebar simple stats box
+    const sysStats = document.getElementById("admin-stats");
+    if (sysStats) {
+      sysStats.innerHTML = `
+        <div class="sidebar-stat-row"><span>Total Lost:</span><strong>${data.byStatus.lost}</strong></div>
+        <div class="sidebar-stat-row"><span>Total Found:</span><strong>${data.byStatus.found}</strong></div>
+        <div class="sidebar-stat-row"><span>Total Claimed:</span><strong>${data.byStatus.claimed}</strong></div>
+       `;
+    }
   } catch (err) {
     console.error(err);
     statsEl.textContent = "Error loading stats";
@@ -67,26 +76,37 @@ async function fetchPendingClaims() {
     const claims = await res.json();
     listEl.innerHTML = "";
 
+    // Update counts
+    const pendingSidebarCount = document.getElementById("sidebar-pending-count");
+    if (pendingSidebarCount) pendingSidebarCount.textContent = claims.length;
+
+    const pendingGlobalCount = document.getElementById("stat-pending");
+    if (pendingGlobalCount) pendingGlobalCount.textContent = claims.length;
+
     if (!claims.length) {
-      listEl.innerHTML = "<li>No pending claims right now.</li>";
+      listEl.innerHTML = "<p>No pending claims right now.</p>";
       return;
     }
 
     for (const claim of claims) {
-      const li = document.createElement("li");
-      li.innerHTML = `
-        <strong>Item: ${claim.itemTitle}</strong> (Item ID: ${claim.itemId})<br/>
-        <small>Claimant ID: ${claim.claimantId} | Requested on: ${new Date(claim.createdAt).toLocaleDateString()}</small>
-        <div style="margin-top: 5px;">
-          <button onclick="approveClaim('${claim.id}')" style="background:green; color:white;">Approve</button>
-          <button onclick="rejectClaim('${claim.id}')" style="background:red; color:white; margin-left:10px;">Reject</button>
+      const div = document.createElement("div");
+      div.style.marginBottom = "1rem";
+      div.style.borderBottom = "1px solid #e2e8f0";
+      div.style.paddingBottom = "0.75rem";
+
+      div.innerHTML = `
+        <div style="font-weight:600; font-size:0.9rem;">${claim.itemTitle}</div>
+        <div style="font-size:0.8rem; color:#64748b; margin-bottom:0.5rem;">User ID: ${claim.claimantId.substring(0, 6)}...</div>
+        <div class="admin-action-btns">
+          <button onclick="approveClaim('${claim.id}')">Approve</button>
+          <button onclick="rejectClaim('${claim.id}')">Reject</button>
         </div>
       `;
-      listEl.appendChild(li);
+      listEl.appendChild(div);
     }
   } catch (err) {
     console.error(err);
-    listEl.innerHTML = "<li>Error loading claims.</li>";
+    listEl.innerHTML = "<p>Error loading claims.</p>";
   }
 }
 

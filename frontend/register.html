@@ -1,40 +1,71 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Register - Digital Lost &amp; Found</title>
-    <link rel="stylesheet" href="css/style.css" />
-  </head>
-  <body>
-    <header>
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Register - Digital Lost &amp; Found</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+
+<body>
+  <header class="app-header">
+    <div class="header-brand">
       <h1>Create an Account</h1>
-    </header>
+    </div>
+  </header>
 
-    <main>
-      <section class="card">
-        <form id="register-form">
-          <label>
-            Name
-            <input type="text" id="register-name" required />
-          </label>
-          <label>
-            Email
-            <input type="email" id="register-email" required />
-          </label>
-          <label>
-            Password
-            <input type="password" id="register-password" required />
-          </label>
-          <button type="submit">Register</button>
-        </form>
-        <p class="helper-text">
-          Already have an account?
-          <a href="index.html">Back to login</a>
-        </p>
-      </section>
-    </main>
+  <main>
+    <section class="card">
+      <form id="register-form">
+        <label>
+          Name
+          <input type="text" id="register-name" required />
+        </label>
+        <label>
+          Email
+          <input type="email" id="register-email" required />
+        </label>
+        <label>
+          Password
+          <div style="position: relative; display: flex; align-items: center;">
+            <input type="password" id="register-password" required style="width: 100%; padding-right: 40px;" />
+            <button type="button" class="btn-toggle-password" onclick="togglePassword('register-password')"
+              style="position: absolute; right: 10px; width: auto; background: none; border: none; cursor: pointer; color: var(--text-muted); padding: 0;">
+              👁️
+            </button>
+          </div>
+        </label>
+        <label>
+          Phone Number (Optional)
+          <input type="tel" id="register-phone" placeholder="+251..." />
+        </label>
+        <label>
+          Telegram Username (Optional)
+          <input type="text" id="register-telegram" placeholder="@username" />
+        </label>
+        <button type="submit">Register</button>
+      </form>
+      <p class="helper-text">
+        Already have an account?
+        <a href="index.html">Back to login</a>
+      </p>
+    </section>
+  </main>
 
-    <script src="js/auth.js"></script>
-  </body>
-  </html>
+  <script src="js/auth.js"></script>
+  <script>
+    function togglePassword(inputId) {
+      const input = document.getElementById(inputId);
+      const btn = input.nextElementSibling;
+      if (input.type === "password") {
+        input.type = "text";
+        btn.textContent = "🙈"; // monkey hiding eyes
+      } else {
+        input.type = "password";
+        btn.textContent = "👁️"; // eye
+      }
+    }
+  </script>
+</body>
 
+</html>

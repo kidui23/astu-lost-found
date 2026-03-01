@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Item Details - Digital Lost &amp; Found</title>
+    <link rel="stylesheet" href="css/style.css" />
+</head>
+
+<body class="dashboard-body">
+    <header class="app-header">
+        <div class="header-brand">
+            <h1>Item Details</h1>
+        </div>
+        <nav class="header-nav">
+            <button id="theme-toggle-btn" class="theme-toggle" style="margin-right:1rem;">🌙</button>
+            <a href="dashboard.html" style="color:var(--text-color); margin-right:15px; text-decoration:none;">Back to
+                Dashboard</a>
+            <button id="logout-btn">Logout</button>
+        </nav>
+    </header>
+
+    <div class="dashboard-layout" style="justify-content: center; padding-top: 30px;">
+        <main class="dashboard-main" style="max-width: 800px; width: 100%;">
+            <div id="item-details-container">
+                <!-- Item details will be injected here by items.js -->
+                <p style="text-align: center; font-size: 1.2rem;">Loading item details...</p>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/theme.js"></script>
+    <script src="js/items.js"></script>
+</body>
+
+</html>

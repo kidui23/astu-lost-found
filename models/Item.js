@@ -17,6 +17,11 @@ const itemSchema = new mongoose.Schema(
     location: String,
     dateLost: Date,
     dateFound: Date,
+    imagePath: String,
+    contactPhone: String,
+    contactTelegram: String,
+    locationLat: Number,
+    locationLng: Number,
   },
   {
     timestamps: true,
