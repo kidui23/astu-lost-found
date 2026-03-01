@@ -36,8 +36,7 @@ router.get("/stats", authenticate, requireAdmin, async (req, res) => {
       },
     });
   } catch (err) {
-    console.error(err);
-    return res.status(500).json({ message: "Failed to load admin stats" });
+    next(err);
   }
 });
 
@@ -56,8 +55,7 @@ router.get("/claims", authenticate, requireAdmin, async (req, res) => {
 
     return res.json(formattedClaims);
   } catch (err) {
-    console.error(err);
-    return res.status(500).json({ message: "Failed to load claims" });
+    next(err);
   }
 });
 
@@ -77,8 +75,7 @@ router.post("/claims/:claimId/approve", authenticate, requireAdmin, async (req, 
 
     return res.json({ message: "Claim approved successfully" });
   } catch (err) {
-    console.error(err);
-    return res.status(500).json({ message: "Failed to approve claim" });
+    next(err);
   }
 });
 
@@ -95,8 +92,7 @@ router.post("/claims/:claimId/reject", authenticate, requireAdmin, async (req, r
 
     return res.json({ message: "Claim rejected successfully" });
   } catch (err) {
-    console.error(err);
-    return res.status(500).json({ message: "Failed to reject claim" });
+    next(err);
   }
 });
 

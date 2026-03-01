@@ -1,4 +1,4 @@
-const API_BASE = "http://localhost:5000";
+const API_BASE = "https://salty-taxis-rule.loca.lt";
 
 function getAuthAdmin() {
   const raw = localStorage.getItem("auth");

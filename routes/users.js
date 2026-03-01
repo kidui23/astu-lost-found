@@ -2,6 +2,7 @@ const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
+const { validateRequest, registerSchema, loginSchema } = require("../middleware/validateMiddleware");
 
 const router = express.Router();
 
@@ -9,16 +10,10 @@ const JWT_SECRET = process.env.JWT_SECRET || "change-this-secret-in-prod";
 
 
 
-// Register a new user (mock)
-router.post("/register", async (req, res) => {
+// Register a new user
+router.post("/register", validateRequest(registerSchema), async (req, res, next) => {
   try {
     const { name, email, password, phoneNumber, telegramUsername } = req.body;
-
-    if (!name || !email || !password) {
-      return res
-        .status(400)
-        .json({ message: "Missing required fields" });
-    }
 
     const existing = await User.findOne({ email });
     if (existing) {
@@ -44,13 +39,12 @@ router.post("/register", async (req, res) => {
       role: user.role,
     });
   } catch (err) {
-    console.error(err);
-    return res.status(500).json({ message: "Failed to register user" });
+    next(err);
   }
 });
 
-// Login user (mock)
-router.post("/login", async (req, res) => {
+// Login user
+router.post("/login", validateRequest(loginSchema), async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
@@ -83,8 +77,7 @@ router.post("/login", async (req, res) => {
       },
     });
   } catch (err) {
-    console.error(err);
-    return res.status(500).json({ message: "Failed to login" });
+    next(err);
   }
 });
 

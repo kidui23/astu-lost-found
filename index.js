@@ -4,19 +4,31 @@ require("dotenv").config({ path: path.join(__dirname, ".env") });
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
+const helmet = require("helmet");
+const rateLimit = require("express-rate-limit");
 
 // Routes
 const usersRouter = require("./routes/users");
 const itemsRouter = require("./routes/items").router;
 const adminRouter = require("./routes/admin");
+const { errorHandler } = require("./middleware/errorMiddleware");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 const MONGODB_URI = (process.env.MONGODB_URI || "").replace(/^["']|["']$/g, "").trim();
 
 // Global middlewares
+app.use(helmet());
 app.use(cors());
 app.use(express.json());
+
+// Rate Limiting (100 requests per 15 mins per IP)
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  message: { message: "Too many requests from this IP, please try again after 15 minutes." }
+});
+app.use("/api/", limiter);
 
 // Serve uploaded images statically
 app.use("/uploads", express.static("uploads"));
@@ -79,9 +91,14 @@ app.use("/api/items", itemsRouter);
 app.use("/api/admin", adminRouter);
 
 // 404 handler
-app.use((req, res) => {
-  res.status(404).json({ message: "Route not found" });
+app.use((req, res, next) => {
+  const error = new Error(`Not Found - ${req.originalUrl}`);
+  res.status(404);
+  next(error);
 });
+
+// Central Error Handler
+app.use(errorHandler);
 
 // Start server only after MongoDB connects
 connectDB()

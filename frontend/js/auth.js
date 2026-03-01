@@ -1,4 +1,4 @@
-const API_BASE = "http://localhost:5000";
+const API_BASE = "https://salty-taxis-rule.loca.lt";
 
 function saveAuthData(token, user) {
   localStorage.setItem(
@@ -62,7 +62,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       } catch (err) {
         console.error(err);
-        alert("Error logging in");
+        alert("Cannot connect to the server. Please ensure the backend is running.");
       }
     });
   }
@@ -98,7 +98,7 @@ document.addEventListener("DOMContentLoaded", () => {
         window.location.href = "index.html";
       } catch (err) {
         console.error(err);
-        alert("Error registering");
+        alert("Cannot connect to the server. Please ensure the backend is running.");
       }
     });
   }

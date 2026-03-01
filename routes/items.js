@@ -3,6 +3,7 @@ const multer = require("multer");
 const Item = require("../models/Item");
 const Claim = require("../models/Claim");
 const { authenticate } = require("../middleware/auth");
+const { validateRequest, itemSchema } = require("../middleware/validateMiddleware");
 
 const router = express.Router();
 
@@ -17,19 +18,24 @@ const upload = multer({
   dest: "uploads/", // simple local storage for now
 });
 
-// Get all items (public)
-router.get("/", async (req, res) => {
+// Get all items (public) with Pagination
+router.get("/", async (req, res, next) => {
   try {
     const { search, category, status, location } = req.query;
+
+    // Pagination defaults: page 1, limit 10
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 10;
+    const skip = (page - 1) * limit;
+
     const query = {};
 
     if (search) {
-      // Create a case-insensitive regex search on title and description
       const searchRegex = new RegExp(search, "i");
       query.$or = [{ title: searchRegex }, { description: searchRegex }];
     }
     if (category) {
-      query.category = { $regex: new RegExp(`^${category}$`, "i") }; // case-insensitive match
+      query.category = { $regex: new RegExp(`^${category}$`, "i") };
     }
     if (status) {
       query.status = status;
@@ -38,9 +44,14 @@ router.get("/", async (req, res) => {
       query.location = { $regex: new RegExp(location, "i") };
     }
 
-    const items = await Item.find(query).sort({ createdAt: -1 });
+    const items = await Item.find(query)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
 
-    // Map `_id` to `id` for frontend compatibility
+    // Get total document count for the frontend to know how many pages exist
+    const total = await Item.countDocuments(query);
+
     const formattedItems = items.map((i) => {
       const obj = i.toObject();
       return {
@@ -50,10 +61,16 @@ router.get("/", async (req, res) => {
       };
     });
 
-    return res.json(formattedItems);
+    return res.json({
+      data: formattedItems,
+      pagination: {
+        total,
+        page,
+        pages: Math.ceil(total / limit),
+      }
+    });
   } catch (err) {
-    console.error(err);
-    return res.status(500).json({ message: "Failed to fetch items" });
+    next(err);
   }
 });
 
@@ -62,7 +79,9 @@ router.post(
   "/",
   authenticate,
   upload.single("image"), // optional image upload field name: "image"
-  async (req, res) => {
+  // Note: if using multipart/form-data for images, Joi validation is trickier. 
+  // We validate the body manually for crucial fields if multer parsed it.
+  async (req, res, next) => {
     try {
       const {
         title,
@@ -78,8 +97,8 @@ router.post(
         contactTelegram,
       } = req.body;
 
-      if (!title) {
-        return res.status(400).json({ message: "title is required" });
+      if (!title || !category || !description) {
+        return res.status(400).json({ message: "Title, category, and description are required" });
       }
 
       const newItemData = {
@@ -124,8 +143,7 @@ router.post(
 
       return res.status(201).json(responseItem);
     } catch (err) {
-      console.error(err);
-      return res.status(400).json({ message: "Failed to create item" });
+      next(err);
     }
   }
 );
